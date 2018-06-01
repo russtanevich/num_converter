@@ -26,40 +26,49 @@ class Translator(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         return True
 
-    @staticmethod
-    def context_translate(num):
-        assert isinstance(num, (int, float, long))
-        str_number = ""
-        current_num = num
+    @classmethod
+    def context_translate(cls, value):
+        """TRANSLATE methodf"""
+        assert isinstance(value, (int, float, long))
+        sign = "" if value >= 0 else NUMBERS["minus"]
+        abs_value = abs(value)
+        str_value = " ".join(cls._get_power_thousand(abs_value))
+        return " ".join((sign, str_value))
 
-        while current_num >= 1:
-            len_num = len(str(current_num))
-            thousand_pow = 10 ** ((len_num - 1) // 3 * 3)
-            value = current_num // thousand_pow
-            str_value = ""
-            curr_val = value
-            while curr_val >= 1:
-                len_num = len(str(curr_val))
-                ten_pow = 10 ** (len_num - 1)
+    @classmethod
+    def _get_power_thousand(cls, value):
+        """Sort out with thousand to the power"""
+        if value == 0:
+            yield NUMBERS[0]
+        while value >= 1:
+            len_value = len(str(value))
+            power_thousand = 10 ** ((len_value - 1) // 3 * 3)
+            value_under_thousand = value // power_thousand
 
-                str_val = NUMBERS.get(curr_val)
-                if str_val and curr_val < 100:
-                    str_value = "{} {}".format(str_value, str_val)
-                    break
+            str_value_under_thousand = " ".join(cls._get_under_thousand(value_under_thousand))
 
-                str_val = NUMBERS.get(curr_val // ten_pow * ten_pow)
-                if str_val and curr_val < 100:
-                    str_value = "{} {}".format(str_value, str_val)
-                    curr_val -= curr_val // ten_pow * ten_pow
-                    continue
+            str_power_thousand = NUMBERS[power_thousand] if power_thousand > 1 else ""
+            str_value = " ".join((str_value_under_thousand, str_power_thousand))
+            value -= value_under_thousand * power_thousand
+            yield str_value
 
-                val = curr_val // ten_pow
-                str_val = NUMBERS[val]
+    @classmethod
+    def _get_under_thousand(cls, value):
+        """Sort out with values under thousand"""
+        while value >= 1:
+            if value >= 100:
+                quantity_hundreds = value // 100
+                value -= quantity_hundreds * 100
+                str_and = NUMBERS["and"] if value > 0 else ""
+                str_value = " ".join((NUMBERS[quantity_hundreds], NUMBERS[100], str_and))
+            elif value in NUMBERS:
+                str_value = NUMBERS[value]
+                value = 0
+            else:
+                value_tens = value // 10 * 10
+                str_value = NUMBERS[value_tens]
+                value = value - value_tens
+            yield str_value
 
-                str_value = "{} {} {}".format(str_value, str_val, NUMBERS[ten_pow])
-                curr_val -= val * ten_pow
 
-            str_number = "{} {} {}".format(str_number, str_value, NUMBERS[thousand_pow])
-            current_num -= value * thousand_pow
 
-        return str_number
