@@ -7,17 +7,17 @@ from data import NUMBERS
 class Translator(object):
     """Translator class"""
 
-    @staticmethod
-    def translate(data):
+    @classmethod
+    def translate(cls, data):
         """The method for converting a input data to number instance """
         if isinstance(data, str):
-            str_result = "".join(chr for chr in data if chr.isdigit())
-            result = int(str_result) if str_result else 0
-        elif isinstance(data, (int, float)):
-            result = data
+            str_result = "".join(char for char in data if char.isdigit())
+            value = int(str_result) if str_result else 0
+        elif isinstance(data, (int, float, long)):
+            value = data
         else:
             raise TypeError("Expected {} or {} / {}. But taken {}".format(str, int, float, data))
-        return result
+        return value
 
     def __enter__(self):
         self.translate = self.context_translate
@@ -27,9 +27,9 @@ class Translator(object):
         return True
 
     @classmethod
-    def context_translate(cls, value):
+    def context_translate(cls, data):
         """TRANSLATE methodf"""
-        assert isinstance(value, (int, float, long))
+        value = cls.translate(data)
         sign = "" if value >= 0 else NUMBERS["minus"]
         abs_value = abs(value)
         str_value = " ".join(cls._get_power_thousand(abs_value))
