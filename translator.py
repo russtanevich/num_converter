@@ -32,14 +32,15 @@ class Translator(object):
         value = cls.translate(data)
         sign = "" if value >= 0 else NUMBERS["minus"]
         abs_value = abs(value)
-        str_value = " ".join(cls._get_power_thousand(abs_value))
+        if value in NUMBERS and value < 100:
+            str_value = NUMBERS[abs_value]
+        else:
+            str_value = " ".join(cls._get_power_thousand(abs_value))
         return " ".join((sign, str_value))
 
     @classmethod
     def _get_power_thousand(cls, value):
         """Sort out with thousand to the power"""
-        if value == 0:
-            yield NUMBERS[0]
         while value >= 1:
             len_value = len(str(value))
             power_thousand = 10 ** ((len_value - 1) // 3 * 3)
